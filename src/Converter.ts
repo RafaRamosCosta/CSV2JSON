@@ -1,11 +1,25 @@
 const fs = require("fs");
 
+/**
+ * The Converter class provides methods that can convert csv data into json!
+ * 
+ * ---
+ * @author RafaelRamosCosta
+ */
 export default class Converter {
   private filePath: string;
   constructor(private fileName: string, private outputFileName: string) {
     this.filePath = `./data/${this.fileName}`;
   }
 
+  /**
+   * The checkFileExistence method is used to protect the process in case the file does not exist
+   * @returns true if the file exists 
+   * 
+   * @throws Error if the file doesn't exist
+   * ---
+   * @author RafaelRamosCosta
+   */
   checkFileExistence(): boolean {
     try {
       if (!fs.existsSync(this.filePath))
@@ -16,6 +30,13 @@ export default class Converter {
     }
   }
 
+  /**
+   * The isFileCsv method is used to protect the process in case the file is not a csv
+   * @returns true if the file is a csv  
+   * @throws  Error if the file is not a csv
+   * ---
+   * @author RafaelRamosCosta
+   */
   isFileCsv(): boolean {
     try {
       if (this.filePath.includes(".csv")) return true;
@@ -25,6 +46,14 @@ export default class Converter {
     }
   }
 
+  /**
+   * The readCsv method is used to read the csv file that was passed in the constructor
+   * @returns
+   * - sucess: the csv data as a string
+   * - error: an empty string
+   * ---
+   * @author RafaelRamosCosta
+   */
   readCsv(): string {
     const existence = this.checkFileExistence();
     const isCsv = this.isFileCsv();
@@ -32,6 +61,14 @@ export default class Converter {
     else return "";
   }
 
+  /**
+   * The formatCsv method is used to format the return of the readCsv method in an array of strings
+   * @returns
+   *    - success: formattedCsv -> an array of strings containing the csv headers and data
+   *    - error: an empty array
+   * ---
+   * @author RafaelRamosCosta
+   */
   formatCsv(): string[] {
     const formattedCsv = this.readCsv().toString().split("\n");
     formattedCsv.pop();
@@ -39,11 +76,23 @@ export default class Converter {
     else return [];
   }
 
+  /**
+   * The getHeaders method is used get the headers of the csv file and return them into an array.
+   * @returns - headers: an array of strings containing the csv headers
+   * ---
+   * @author RafaelRamosCosta
+   */
   getHeaders(): string[] {
     const headers = this.formatCsv()[0]?.split(",");
     return headers;
   }
 
+  /**
+   * The getCsvData method is used get the data of the csv file and return them into an array.
+   * @returns - csvData: an array of strings containing the csv data
+   * ---
+   * @author RafaelRamosCosta
+   */
   getCsvData(): string[][] {
     let csvData = this.formatCsv()
       .slice(1)
@@ -53,6 +102,12 @@ export default class Converter {
     return csvData;
   }
 
+  /**
+   * The convertToJson method is used to convert the whole csv data into an array of Objects.
+   * @returns - jsonArr: Array of Objects
+   * ---
+   * @author RafaelRamosCosta
+   */
   convertToJSON(): Object[] {
     const headers = this.getHeaders();
     const data = this.getCsvData();
@@ -69,6 +124,12 @@ export default class Converter {
     return jsonArr;
   }
 
+  /**
+   * The writeJsonFile method is used write the array of objects into a .json file.
+   * 
+   * ---
+   * @author RafaelRamosCosta
+   */
   writeJsonFile(): void {
     const jsonArr = this.convertToJSON();
 
@@ -88,6 +149,12 @@ export default class Converter {
     }
   }
 
+  /**
+   * The writeManyJSON method is used to write multiple array of objects into .json files.
+   * 
+   * ---
+   * @author RafaelRamosCosta
+   */
   static writeManyJSON(): void {
     try {
       const dataDir = fs.readdirSync("data");
