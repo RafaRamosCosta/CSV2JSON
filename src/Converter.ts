@@ -39,9 +39,9 @@ export default class Converter {
    * @author RafaelRamosCosta
    */
   isFileCsv(): boolean {
-      const isCsv = path.extname(this.filePath) === ".csv";
-      return isCsv;
-    }
+    const isCsv = path.extname(this.filePath) === ".csv";
+    return isCsv;
+  }
 
   /**
    * The readCsv method is used to read the csv file that was passed in the constructor
@@ -104,7 +104,6 @@ export default class Converter {
   getCsvData(formattedCsv: string[]): string[][] {
     let csvData = formattedCsv.slice(1).map((row) => row.split(","));
     csvData.pop();
-    console.log(csvData);
     return csvData;
   }
 
@@ -132,7 +131,7 @@ export default class Converter {
 
       return [...objArr, jsonObj];
     }, []);
-
+    console.log(jsonArr);
     return jsonArr;
   }
 
