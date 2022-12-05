@@ -1,50 +1,47 @@
-const fs = require("fs");
-
+import fs from "fs";
+import path from "path";
+type JsonObjType = Record<string, unknown>;
 /**
  * The Converter class provides methods that can convert csv data into json!
- * 
+ *
  * ---
  * @author RafaelRamosCosta
  */
 export default class Converter {
   private filePath: string;
-  constructor(private fileName: string, private outputFileName: string) {
-    this.filePath = `./data/${this.fileName}`;
+
+  constructor(
+    private dirName: string,
+    private fileName: string,
+    private outputDir: string
+  ) {
+    this.filePath = `./${this.dirName}/${this.fileName}`;
   }
 
   /**
    * The checkFileExistence method is used to protect the process in case the file does not exist
-   * @returns true if the file exists 
-   * 
+   * @returns true if the file exists
+   *
    * @throws Error if the file doesn't exist
    * ---
    * @author RafaelRamosCosta
    */
   checkFileExistence(): boolean {
-    try {
-      if (!fs.existsSync(this.filePath))
-        throw new Error("File does not exist!");
-      return true;
-    } catch (error: any) {
-      throw error.message;
-    }
+    const fileExists = fs.existsSync(this.filePath);
+    return fileExists;
   }
 
   /**
    * The isFileCsv method is used to protect the process in case the file is not a csv
-   * @returns true if the file is a csv  
+   * @returns true if the file is a csv
    * @throws  Error if the file is not a csv
    * ---
    * @author RafaelRamosCosta
    */
   isFileCsv(): boolean {
-    try {
-      if (this.filePath.includes(".csv")) return true;
-      throw new Error("File must be a csv!");
-    } catch (error: any) {
-      throw error.message;
+      const isCsv = path.extname(this.filePath) === ".csv";
+      return isCsv;
     }
-  }
 
   /**
    * The readCsv method is used to read the csv file that was passed in the constructor
@@ -55,25 +52,36 @@ export default class Converter {
    * @author RafaelRamosCosta
    */
   readCsv(): string {
-    const existence = this.checkFileExistence();
-    const isCsv = this.isFileCsv();
-    if (existence && isCsv) return fs.readFileSync(this.filePath);
-    else return "";
+    try {
+      const fileExists = this.checkFileExistence();
+      const isCsv = this.isFileCsv();
+
+      if (!fileExists) throw new Error("File does not exist!");
+      if (!isCsv) throw new Error("File must be a csv!");
+
+      const csvData = fs.readFileSync(this.filePath, "utf8");
+
+      if (!csvData.length) throw new Error("File doesn't have ant content!");
+      return csvData;
+    } catch (error: any) {
+      throw error.message;
+    }
   }
 
   /**
    * The formatCsv method is used to format the return of the readCsv method in an array of strings
-   * @returns
-   *    - success: formattedCsv -> an array of strings containing the csv headers and data
-   *    - error: an empty array
+   * @returns success: formattedCsv -> an array of strings containing the csv headers and data
+   *
+   * ---
+   * @throws Error if the file doesn't have any content
    * ---
    * @author RafaelRamosCosta
    */
-  formatCsv(): string[] {
-    const formattedCsv = this.readCsv().toString().split("\n");
+  formatCsv(csvContent: string): string[] {
+    const formattedCsv = csvContent.split("\n");
     formattedCsv.pop();
-    if (formattedCsv.length > 0) return formattedCsv;
-    else return [];
+
+    return formattedCsv;
   }
 
   /**
@@ -82,8 +90,8 @@ export default class Converter {
    * ---
    * @author RafaelRamosCosta
    */
-  getHeaders(): string[] {
-    const headers = this.formatCsv()[0]?.split(",");
+  getHeaders(formattedCsv: string[]): string[] {
+    const headers = formattedCsv[0].split(",");
     return headers;
   }
 
@@ -93,12 +101,10 @@ export default class Converter {
    * ---
    * @author RafaelRamosCosta
    */
-  getCsvData(): string[][] {
-    let csvData = this.formatCsv()
-      .slice(1)
-      .map((row) => row.split(","));
+  getCsvData(formattedCsv: string[]): string[][] {
+    let csvData = formattedCsv.slice(1).map((row) => row.split(","));
     csvData.pop();
-
+    console.log(csvData);
     return csvData;
   }
 
@@ -108,50 +114,59 @@ export default class Converter {
    * ---
    * @author RafaelRamosCosta
    */
-  convertToJSON(): Object[] {
-    const headers = this.getHeaders();
-    const data = this.getCsvData();
-    const jsonArr: Object[] = [];
+  convertToJSON(): JsonObjType[] {
+    const csvContent = this.readCsv();
+    const formattedCsv = this.formatCsv(csvContent);
 
-    for (const row of data) {
-      const jsonObj: any = {};
-      for (const col in row) {
-        jsonObj[headers[col]] = row[col];
-      }
-      jsonArr.push(jsonObj);
-    }
+    const headers = this.getHeaders(formattedCsv);
+    const data = this.getCsvData(formattedCsv);
+
+    const jsonArr = data.reduce((objArr: JsonObjType[], row) => {
+      const jsonObj: JsonObjType = row.reduce(
+        (obj: JsonObjType, value, index) => {
+          obj[headers[index]] = value;
+          return obj;
+        },
+        {}
+      );
+
+      return [...objArr, jsonObj];
+    }, []);
 
     return jsonArr;
   }
 
+  writeFile(jsonArr: JsonObjType[]): void {
+    fs.writeFileSync(
+      `./${this.outputDir}/${this.fileName.replace(".csv", ".json")}`,
+      JSON.stringify(jsonArr, null, 2)
+    );
+  }
+
   /**
    * The writeJsonFile method is used write the array of objects into a .json file.
-   * 
+   *
    * ---
    * @author RafaelRamosCosta
    */
   writeJsonFile(): void {
     const jsonArr = this.convertToJSON();
+    const jsonArrSize = jsonArr.length;
+    const dirExists: boolean = fs.existsSync(this.outputDir);
 
-    if (jsonArr.length) {
-      if (fs.existsSync("./output")) {
-        fs.writeFileSync(
-          `./output/${this.outputFileName}.json`,
-          JSON.stringify(jsonArr, null, 2)
-        );
-      } else {
-        fs.mkdirSync("./output");
-        fs.writeFileSync(
-          `./output/${this.outputFileName}.json`,
-          JSON.stringify(jsonArr, null, 2)
-        );
+    if (jsonArrSize) {
+      if (!dirExists) {
+        fs.mkdirSync(this.outputDir);
+
+        this.writeFile(jsonArr);
       }
+      this.writeFile(jsonArr);
     }
   }
 
   /**
    * The writeManyJSON method is used to write multiple array of objects into .json files.
-   * 
+   *
    * ---
    * @author RafaelRamosCosta
    */
@@ -161,7 +176,7 @@ export default class Converter {
       if (dataDir.length < 1)
         throw new Error("Directory does not have any archives!");
       dataDir.forEach((file: string) => {
-        const converter = new Converter(file, file.replace(".csv", ""));
+        const converter = new Converter("data", file, "./output");
         converter.writeJsonFile();
       });
     } catch (e) {
