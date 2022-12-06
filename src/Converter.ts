@@ -60,8 +60,8 @@ export default class Converter {
       if (!isCsv) throw new Error("File must be a csv!");
 
       const csvData = fs.readFileSync(this.filePath, "utf8");
-
-      if (!csvData.length) throw new Error("File doesn't have ant content!");
+      const csvHasData = csvData.length;
+      if (!csvHasData) throw new Error("File doesn't have ant content!");
       return csvData;
     } catch (error: any) {
       throw error.message;
@@ -172,7 +172,8 @@ export default class Converter {
   static writeManyJSON(): void {
     try {
       const dataDir = fs.readdirSync("data");
-      if (dataDir.length < 1)
+      const dirHasFiles = dataDir.length !== 0;
+      if (!dirHasFiles)
         throw new Error("Directory does not have any archives!");
       dataDir.forEach((file: string) => {
         const converter = new Converter("data", file, "./output");
