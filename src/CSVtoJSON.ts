@@ -7,7 +7,7 @@ type JsonObjType = Record<string, unknown>;
  * ---
  * @author RafaelRamosCosta
  */
-export default class Converter {
+export default class CSVtoJSON {
   private filePath: string;
 
   constructor(
@@ -104,8 +104,10 @@ export default class Converter {
    * @author RafaelRamosCosta
    */
   getCsvData(formattedCsv: string[]): string[][] {
-    let csvData = formattedCsv.slice(1).map((row) => row.split(","));
-    csvData.pop();
+    let csvData = formattedCsv
+      .slice(1)
+      .filter(Boolean)
+      .map((row) => row.split(","));
     return csvData;
   }
 
@@ -178,7 +180,7 @@ export default class Converter {
       if (!dirHasFiles)
         throw new Error("Directory does not have any archives!");
       dataDir.forEach((file: string) => {
-        const converter = new Converter("data", file, "./output");
+        const converter = new CSVtoJSON("data", file, "./output");
         converter.writeJsonFile();
       });
     } catch (e) {
@@ -187,5 +189,5 @@ export default class Converter {
   }
 }
 
-// const converter = new Converter("exemplo.csv", "exemplo");
-Converter.writeManyJSON();
+// const converter = new CSVtoJSON("exemplo.csv", "exemplo");
+CSVtoJSON.writeManyJSON();

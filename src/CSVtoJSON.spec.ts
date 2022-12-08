@@ -1,4 +1,4 @@
-import Converter from "./Converter";
+import CSVtoJSON from "./CSVtoJSON";
 import fs from "fs";
 
 const dirPath = fs.mkdtempSync("test");
@@ -16,8 +16,8 @@ const FORMATTEDCSV = [
 ];
 fs.writeFileSync(dirPath + "/test.csv", MOCKCSVCONTENT);
 
-const converter = new Converter(dirPath, "test.csv", "test");
-const converterErrTest = new Converter(dirPath, "Errtest.txt", "Errtest");
+const converter = new CSVtoJSON(dirPath, "test.csv", "test");
+const converterErrTest = new CSVtoJSON(dirPath, "Errtest.txt", "Errtest");
 
 describe("checkFileExistence", () => {
   it("should return true if file exists", () => {
@@ -83,8 +83,10 @@ describe("convertToJSON", () => {
     ]);
   });
   it("should throw an error if the file does not exist", () => {
-    expect(() => converterErrTest.convertToJSON()).toThrow("File does not exist!");
-  })
+    expect(() => converterErrTest.convertToJSON()).toThrow(
+      "File does not exist!"
+    );
+  });
 });
 
 describe("writeJsonFile", () => {
@@ -101,7 +103,7 @@ describe("writeJsonFile", () => {
 
 describe("writeManyJSON", () => {
   it("should write the converted data of multiple csv files to json files", () => {
-    Converter.writeManyJSON();
+    CSVtoJSON.writeManyJSON();
     const dir = fs.readdirSync(dirPath);
     const outputDir = fs.readdirSync("test");
 
