@@ -2,10 +2,10 @@
   "name": "csv2json",
   "version": "1.0.0",
   "description": "",
-  "main": "Converter.js",
+  "main": "CSVtoJSON.js",
   "scripts": {
     "test": "jest --testPathPattern=src",
-    "convert": "node build/Converter.js"
+    "convert": "node build/CSVtoJSON.js"
   },
   "repository": {
     "type": "git",
