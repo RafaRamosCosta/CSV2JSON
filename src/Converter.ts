@@ -62,6 +62,7 @@ export default class Converter {
       const csvData = fs.readFileSync(this.filePath, "utf8");
       const csvHasData = csvData.length;
       if (!csvHasData) throw new Error("File doesn't have ant content!");
+
       return csvData;
     } catch (error: any) {
       throw error.message;
@@ -79,7 +80,8 @@ export default class Converter {
    */
   formatCsv(csvContent: string): string[] {
     const formattedCsv = csvContent.split("\n");
-    formattedCsv.pop();
+    const lastLine = formattedCsv[formattedCsv.length - 1];
+    if (lastLine === "") formattedCsv.pop();
 
     return formattedCsv;
   }
@@ -131,7 +133,7 @@ export default class Converter {
 
       return [...objArr, jsonObj];
     }, []);
-    console.log(jsonArr);
+
     return jsonArr;
   }
 
